@@ -117,16 +117,88 @@ void init_field_pairs(FIELD* f) {
 int fill_field(FIELD *f) {
   int i = 0;
   int j = 0;
+  FIELD next = *f;
+  int ret = 0;
 
   for (i = 0; i < f->h_pairs_count; i++) {
+    next = *f;
+    pull_pair_from_field(&next, cTYPE_HORIZONTAL, i);
     if (set_pair_to_field(f, &f->h_pairs[i])) {
       if (f->pairs_count >= cPAIR_MAX) {
-        
+        for (j = 0; j < f->pairs_count; j++) {
+          printf("%d,%d(%d):", f->pairs[j].x, f->pairs[j].y, f->pairs[j].type);
+        }
+        printf("\n");
+
+        ret++;
+      }
+      else {
+        ret += fill_field(&next);
       }
     }
   }
 
-  return 1;
+  for (i = 0; i < f->v_pairs_count; i++) {
+    next = *f;
+    pull_pair_from_field(&next, cTYPE_VERTICAL, i);
+    if (set_pair_to_field(f, &f->v_pairs[i])) {
+      if (f->pairs_count >= cPAIR_MAX) {
+        for (j = 0; j < f->pairs_count; j++) {
+          printf("%d,%d(%d):", f->pairs[j].x, f->pairs[j].y, f->pairs[j].type);
+        }
+        printf("\n");
+
+        ret++;
+      }
+      else {
+        ret += fill_field(&next);
+      }
+    }
+  }
+
+/*
+  for (i = 0; i < f->h_pairs_count; i++) {
+    next = *f;
+    pull_pair_from_field(&next, cTYPE_HORIZONTAL, i);
+    if (set_pair_to_field(&next, &f->h_pairs[i])) {
+      if (next.pairs_count >= cPAIR_MAX) {
+        for (j = 0; j < f->pairs_count; j++) {
+          printf("%d,%d(%d):", f->pairs[j].x, f->pairs[j].y, f->pairs[j].type);
+        }
+        printf("\n");
+
+        ret++;
+      }
+      else {
+        ret += fill_field(&next);
+      }
+    }
+  }
+
+  for (i = 0; i < f->v_pairs_count; i++) {
+    next = *f;
+    pull_pair_from_field(&next, cTYPE_VERTICAL, i);
+    if (set_pair_to_field(&next, &f->v_pairs[i])) {
+      if (next.pairs_count >= cPAIR_MAX) {
+        for (j = 0; j < f->pairs_count; j++) {
+          printf("%d,%d(%d):", f->pairs[j].x, f->pairs[j].y, f->pairs[j].type);
+        }
+        printf("\n");
+
+        ret++;
+      }
+      else {
+        ret += fill_field(&next);
+      }
+    }
+  }
+*/
+/*
+  if (f->pairs_count == 1) {
+    printf("%d,%d(%d):%d", f->pairs[0].x, f->pairs[0].y, f->pairs[0].type, ret);
+    printf("\n");
+  }*/
+  return ret;
 }
 
 int main(int argc, char** argv) {
@@ -135,12 +207,6 @@ int main(int argc, char** argv) {
   init_field_pairs(&f);
 
   fill_field(&f);
-/*
-  for (i = 0; i < f.v_pairs_count; i++) {
-    if (set_pair_to_field(&f, &f.v_pairs[i])) {
-      printf("%d\n", i);
-    }
-  }
-*/
+
   return 0;
 }
