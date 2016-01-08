@@ -20,6 +20,8 @@
 #define cPAIR_HASH_MAX        (176) // 10101111
 #define PAIR_HASH(type, y, x) ((x << 4) | (y << 1) | type)
 
+#define cSOLVE_PATTERN_LIMIT  (0xffffff)
+
 typedef struct PAIR_t {
   unsigned char x;
   unsigned char y;
@@ -45,6 +47,10 @@ typedef struct HASH_TREE_t {
 
   struct HASH_TREE_t* next[cPAIR_HASH_MAX];
 }HASH_TREE;
+
+HASH_TREE g_hash_tree[cPAIR_HASH_MAX];
+static int g_solve_count = 0;
+static FIELD g_solve_field[cSOLVE_PATTERN_LIMIT];
 
 int set_pair_to_field(FIELD* f, PAIR* p) {
   int x = 0;
@@ -114,26 +120,43 @@ void init_field_pairs(FIELD* f) {
   }
 }
 
+void sort_field(FIELD *f) {
+  int i = 0;
+  int j = 0;
+  PAIR tmp;
+
+  for (i = 0; i < f->pairs_count - 1; i++) {
+    for (j = 0; j < f->pairs_count - 1 - i; j++) {
+      if (f->pairs[j].hash > f->pairs[j + 1].hash) {
+        tmp = f->pairs[j];
+        f->pairs[j] = f->pairs[j + 1];
+        f->pairs[j + 1] = tmp;
+      }
+    }
+  }
+}
+
 int fill_field(FIELD *f) {
   int i = 0;
   int j = 0;
   FIELD next = *f;
-  int ret = 0;
+  int count = f->pairs_count;
 
   for (i = 0; i < f->h_pairs_count; i++) {
     next = *f;
     pull_pair_from_field(&next, cTYPE_HORIZONTAL, i);
     if (set_pair_to_field(f, &f->h_pairs[i])) {
       if (f->pairs_count >= cPAIR_MAX) {
+        /*
         for (j = 0; j < f->pairs_count; j++) {
           printf("%d,%d(%d):", f->pairs[j].x, f->pairs[j].y, f->pairs[j].type);
         }
         printf("\n");
-
-        ret++;
+        */
+        g_solve_count++;
       }
       else {
-        ret += fill_field(&next);
+        fill_field(&next);
       }
     }
   }
@@ -143,15 +166,15 @@ int fill_field(FIELD *f) {
     pull_pair_from_field(&next, cTYPE_VERTICAL, i);
     if (set_pair_to_field(f, &f->v_pairs[i])) {
       if (f->pairs_count >= cPAIR_MAX) {
+        /*
         for (j = 0; j < f->pairs_count; j++) {
           printf("%d,%d(%d):", f->pairs[j].x, f->pairs[j].y, f->pairs[j].type);
         }
         printf("\n");
-
-        ret++;
+        */
       }
       else {
-        ret += fill_field(&next);
+        fill_field(&next);
       }
     }
   }
@@ -193,11 +216,6 @@ int fill_field(FIELD *f) {
     }
   }
 */
-/*
-  if (f->pairs_count == 1) {
-    printf("%d,%d(%d):%d", f->pairs[0].x, f->pairs[0].y, f->pairs[0].type, ret);
-    printf("\n");
-  }*/
   return ret;
 }
 
